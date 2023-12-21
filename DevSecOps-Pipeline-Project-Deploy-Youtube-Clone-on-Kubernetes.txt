@@ -47,7 +47,6 @@ resource "aws_security_group" "Jenkins-VM-SG" {
   }
 }
 
-
 ------------------2--provider.tf-----------------
 terraform {
   required_providers {
@@ -62,8 +61,7 @@ provider "aws" {
   region = "ap-south-1"     #change region as per you requirement
 }
 
-
-----------------3--install.sh----------------------------
+-----------------3--install.sh----------------------------
 #!/bin/bash
 sudo apt update -y
 wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc
@@ -94,14 +92,14 @@ echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.
 sudo apt-get update
 sudo apt-get install trivy -y
 
------4 Use Below commands creating above resources in Terraform
+-----4 Use Below commands creating above resources in Terraform----
     aws configure,  
     terraform init,  
     terraform plan,    
     terraform apply -auto-approve
-=============================================================================================================================================================================================
+==================================================================================================================================================
 [B] Create EC2 Instance and Setup Prometheus & Grafana
-1--main.tf
+--------------------1--main.tf--------------------------------
 resource "aws_instance" "web" {
   ami                    = "ami-0287a05f0ef0e9d9a"      #change ami id for different region
   instance_type          = "t2.medium"
@@ -149,7 +147,7 @@ resource "aws_security_group" "Monitoring-Server-SG" {
 }
 
 
-2--provider.tf
+-----------------2--provider.tf-----------------
 terraform {
   required_providers {
     aws = {
@@ -164,7 +162,7 @@ provider "aws" {
 }
 
 
-3--install.sh
+-----------------3--install.sh--------------------
 #!/bin/bash
 sudo apt update -y
 
@@ -248,61 +246,63 @@ $ sudo systemctl enable grafana-server
 $ sudo systemctl start grafana-server   
 
 
-4--Commands to check services
+------4--Commands to check services in Ec2 Instance-------
 $ sudo systemctl status prometheus
 $ sudo systemctl status node_exporter
 $ sudo systemctl status grafana-server
 
-5--Add job for node exporter in prometheus
+-------5--Add job for node exporter in prometheus---------
 $ cd /etc/prometheus/, ls, $ sudo nano prometheus.yml and below the job of prometheus, add job for node exporter
   - job_name: 'node_exporter'
     static_configs:
       - targets: ['IP-Address:9100']
 
-6--Check the indentatio of the prometheus config file with below command
+-------6--Check the indentatio of the prometheus config file with below command-------
 $ promtool check config /etc/prometheus/prometheus.yml
 
-7--Reload the Prometheus configuration
+-------7--Reload the Prometheus configuration---------
 $ curl -X POST http://localhost:9090/-/reload
 
-8--On monitoring server go to $ cd /etc/prometheus/ & $ sudo nano prometheus.yml and add job for Jenkins
+-------8--On monitoring server go to $ cd /etc/prometheus/ & $ sudo nano prometheus.yml and add job for Jenkins------
 - job_name: 'jenkins'
     metrics_path: '/prometheus'
     static_configs:
       - targets: ['IP-Address:8080']
-=============================================================================================================================================================================================
+===========================================================================================================================================
 [C] Create AWS EKS Cluster
-1--Install kubectl on Jenkins Server
+----------------------------------------------------------------------------
+------------1--Install kubectl on Jenkins Server---------------
  $ sudo apt update
  $ sudo apt install curl
  $ curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
  $ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
  $ kubectl version --client
 
-2--Install AWS Cli
+------------2--Install AWS Cli---------------------
 $ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 $ sudo apt install unzip
 $ unzip awscliv2.zip
 $ sudo ./aws/install
 $ aws --version
 
-3--Installing  eksctl
+------------3--Installing  eksctl------------------
 $ curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 $ cd /tmp
 $ sudo mv /tmp/eksctl /bin
 $ eksctl version
 
-4--Setup Kubernetes using eksctl
-eksctl create cluster --name virtualtechbox-cluster \
+------------4--Setup Kubernetes using eksctl-----------
+eksctl create cluster --name qprofile-cluster \
 --region ap-south-1 \
 --node-type t2.small \
 --nodes 3 \
 
-5--Verify Cluster with below command
+------------5--Verify Cluster with below command----------
 $ kubectl get nodes
-=============================================================================================================================================================================================
+==================================================================================================================================================
 [D] Integrate Prometheus with EKS and Import Grafana Monitoring Dashboard for Kubernetes
-1--Install Helm
+----------------------------------------------------------------------------------------
+--------------------1--Install Helm-----------------------
 $ sudo snap install helm --classic,    $ helm version
                     OR
 $ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
@@ -311,7 +311,7 @@ $ ./get_helm.sh
 $ helm version
 
 
-2--Install Prometheus on EKS
+-----------------2--Install Prometheus on EKS------------
 $ helm repo add stable https://charts.helm.sh/stable          ///We need to add the Helm Stable Charts for our local client
 
 $ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts     ///Add Prometheus Helm repo
@@ -329,17 +329,19 @@ $ kubectl get svc -n prometheus           ///to check the services file (svc) of
 $ kubectl edit svc stable-kube-prometheus-sta-prometheus -n prometheus    ///type:LoadBalancer, change port & targetport to 9090, save and close
 
 $ kubectl get svc -n prometheus    //copy dns name of LB and browse with 9090
-=============================================================================================================================================================================================
+==============================================================================================================================================================
 [E] Set the Trigger and Verify the CI/CD Pipeline
+--------------------------------------------------------------------
 $ git config --global user.name "your.name"
 $ git config --global user.email "your-email-address"
-$ git clone https://github.com/Ashfaque-9x/a-youtube-clone-app.git
-$ cd a-youtube-clone-app
+$ git clone https://github.com/Ranjith-Qprofiles/cicd-clone-app.git
+$ cd cicd-clone-app
 $ git add .
 $ git commit -m "test change"
 $ git push origin main
-=============================================================================================================================================================================================
+===============================================================================================================================================================
 [F] Complete jenkins pipeline script
+---------------------------------------------------
 pipeline {
     agent any
     tools {
@@ -357,7 +359,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/Ashfaque-9x/a-youtube-clone-app.git'
+                git branch: 'main', url: 'https://github.com/Ranjith-Qprofiles/cicd-clone-app.git'
             }
         }
         stage("Sonarqube Analysis") {
@@ -384,21 +386,21 @@ pipeline {
              steps {
                  sh "trivy fs . > trivyfs.txt"
              }
-         }
-         stage("Docker Build & Push"){
+        }
+        stage("Docker Build & Push"){
              steps{
                  script{
                    withDockerRegistry(credentialsId: 'dockerhub', toolName: 'docker'){   
-                      sh "docker build -t youtube-clone ."
-                      sh "docker tag youtube-clone ashfaque9x/youtube-clone:latest "
-                      sh "docker push ashfaque9x/youtube-clone:latest "
+                      sh "docker build -t qprofile-clone ."
+                      sh "docker tag qprofile-clone ranjithkumarkcbpur/qprofile-clone:latest "
+                      sh "docker push ranjithkumarkcbpur/qprofile-clone:latest "
                     }
                 }
             }
         }
         stage("TRIVY Image Scan"){
             steps{
-                sh "trivy image ashfaque9x/youtube-clone:latest > trivyimage.txt" 
+                sh "trivy image ranjithkumarkcbpur/qprofile-clone:latest > trivyimage.txt" 
             }
         }
         stage('Deploy to Kubernets'){
@@ -414,26 +416,28 @@ pipeline {
                 }
             }
         }
+         
     }
     post {
-     always {
-        emailext attachLog: true,
+        always {
+            emailext attachLog: true,
             subject: "'${currentBuild.result}'",
             body: "Project: ${env.JOB_NAME}<br/>" +
                 "Build Number: ${env.BUILD_NUMBER}<br/>" +
                 "URL: ${env.BUILD_URL}<br/>",
-            to: 'ashfaque.s510@gmail.com',                              
+            to: 'ranjithkumarkcbpur@gmail.com, prathibashanbog@gmail.com, cc:anushapatel1795@gmail.com ',                            
             attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
 }
 
-=============================================================================================================================================================================================
+==========================================================================================================================================================
 [G] Cleanup
+-----------------------------------------
 $ kubectl delete --all pods -n prometheus                   //This command will delete all the pods in prometheus namespace
 $ kubectl delete namespace prometheus
-$ kubectl get all                                           //This command will show the all the deployments, pods & services in default namespace
-$ kubectl delete deployment.apps/virtualtechbox-cluster     //delete deployment in your k8s cluster
-$ kubectl delete service/virtualtechbox-service             //delete service for your deployment of k8s cluster
-$ eksctl delete cluster virtualtechbox-cluster --region ap-south-1     OR    eksctl delete cluster --region=ap-south-1 --name=virtualtechbox-cluster      //This command will delete your EKS cluster
+$ kubectl get all                                            //This command will show the all the deployments, pods & services in default namespace
+$ kubectl delete deployment.apps/deploymentname              //delete deployment in your k8s cluster
+$ kubectl delete service/servicename                         //delete service for your deployment of k8s cluster
+$ eksctl delete cluster qprofile-cluster --region ap-south-1   #OR#  ksctl delete cluster --region=ap-south-1 --name=qprofile-cluster    //This command will delete your EKS cluster
 $ terraform destroy
