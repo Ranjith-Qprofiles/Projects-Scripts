@@ -97,6 +97,7 @@ sudo apt-get install trivy -y
     terraform init,  
     terraform plan,    
     terraform apply -auto-approve
+
 ==================================================================================================================================================
 [B] Create EC2 Instance and Setup Prometheus & Grafana
 --------------------1--main.tf--------------------------------
@@ -268,6 +269,7 @@ $ curl -X POST http://localhost:9090/-/reload
     metrics_path: '/prometheus'
     static_configs:
       - targets: ['IP-Address:8080']
+
 ===========================================================================================================================================
 [C] Create AWS EKS Cluster
 ----------------------------------------------------------------------------
@@ -299,9 +301,9 @@ eksctl create cluster --name qprofile-cluster \
 
 ------------5--Verify Cluster with below command----------
 $ kubectl get nodes
+
 ==================================================================================================================================================
 [D] Integrate Prometheus with EKS and Import Grafana Monitoring Dashboard for Kubernetes
-----------------------------------------------------------------------------------------
 --------------------1--Install Helm-----------------------
 $ sudo snap install helm --classic,    $ helm version
                     OR
@@ -329,6 +331,7 @@ $ kubectl get svc -n prometheus           ///to check the services file (svc) of
 $ kubectl edit svc stable-kube-prometheus-sta-prometheus -n prometheus    ///type:LoadBalancer, change port & targetport to 9090, save and close
 
 $ kubectl get svc -n prometheus    //copy dns name of LB and browse with 9090
+
 ==============================================================================================================================================================
 [E] Set the Trigger and Verify the CI/CD Pipeline
 --------------------------------------------------------------------
@@ -339,6 +342,7 @@ $ cd cicd-clone-app
 $ git add .
 $ git commit -m "test change"
 $ git push origin main
+
 ===============================================================================================================================================================
 [F] Complete jenkins pipeline script
 ---------------------------------------------------
@@ -430,6 +434,7 @@ pipeline {
         }
     }
 }
+
 
 ==========================================================================================================================================================
 [G] Cleanup
