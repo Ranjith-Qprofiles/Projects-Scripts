@@ -1,4 +1,3 @@
-Video -- https://youtu.be/TY6hW7fecuI
 =============================================================================================================================================================================================
 [A] Let's use Terraform to create an EC2 instance for Jenkins, Docker and SonarQube
 1--main.tf
