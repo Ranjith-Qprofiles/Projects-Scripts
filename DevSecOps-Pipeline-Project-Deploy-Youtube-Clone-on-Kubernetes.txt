@@ -63,7 +63,7 @@ provider "aws" {
 }
 
 
-3--install.sh
+----------------3--install.sh----------------------------
 #!/bin/bash
 sudo apt update -y
 wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc
@@ -94,7 +94,11 @@ echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.
 sudo apt-get update
 sudo apt-get install trivy -y
 
-4-- aws configure,  terraform init,  terraform plan,  terraform apply -auto-approve
+-----4 Use Below commands creating above resources in Terraform
+    aws configure,  
+    terraform init,  
+    terraform plan,    
+    terraform apply -auto-approve
 =============================================================================================================================================================================================
 [B] Create EC2 Instance and Setup Prometheus & Grafana
 1--main.tf
